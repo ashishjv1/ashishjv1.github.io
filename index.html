@@ -73,6 +73,7 @@
 
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.88em; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
 
     /* ---------- Header ---------- */
     header {
@@ -188,6 +189,51 @@
 
     .more { margin-top: 16px; font-size: 0.95rem; font-weight: 500; }
 
+    /* ---------- Selected work (project cards) ---------- */
+    .work-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+    }
+    .card {
+      display: flex; flex-direction: column;
+      padding: 14px 16px;
+      border: 1px solid var(--border); border-radius: 12px;
+      background: var(--surface); box-shadow: var(--shadow);
+      transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent);
+      box-shadow: 0 2px 4px rgba(28,27,26,.06), 0 14px 32px rgba(28,27,26,.10);
+    }
+    .card .title {
+      font-family: "Inter", sans-serif; font-weight: 600; font-size: 1.05rem;
+      color: var(--text); margin: 0 0 7px;
+      display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+    }
+    .card .desc {
+      color: var(--muted); font-size: 0.9rem; line-height: 1.45;
+      margin: 0; flex: 1;
+    }
+    .card .repo {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.7rem; color: var(--faint); font-weight: 500; letter-spacing: 0.01em;
+    }
+    .card .tech { display: flex; flex-wrap: wrap; gap: 0 14px; margin-top: 11px; }
+    .card .chip {
+      position: relative;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.72rem; font-weight: 500; color: var(--faint);
+    }
+    .card .chip + .chip::before {
+      content: "·"; position: absolute; left: -9px; color: var(--border);
+    }
+    .card .links { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 12px; }
+    .card .links a {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.76rem; font-weight: 600; color: var(--muted);
+    }
+    .card .links a:hover { color: var(--accent); }
+
     footer {
       margin-top: 76px; padding-top: 22px;
       border-top: 1px solid var(--border);
@@ -200,6 +246,7 @@
       .avatar { width: 88px; height: 88px; }
       h1 { font-size: 1.8rem; }
       .video-grid { grid-template-columns: 1fr; }
+      .work-grid { grid-template-columns: 1fr; }
       ol.pubs li { grid-template-columns: 1fr; gap: 6px; }
       .pub-year { text-align: left; }
     }
@@ -217,7 +264,7 @@
            onerror="this.style.visibility='hidden'" />
       <div>
         <h1>Ashish Jha</h1>
-        <p class="tagline">ML research engineer · writer · educator</p>
+        <p class="tagline">ML engineer · inference &amp; model optimization · researcher · writer</p>
       </div>
     </header>
 
@@ -248,9 +295,10 @@
          ============================================================ -->
     <section id="about">
       <p class="lead">
-        I'm a machine learning research engineer working on <em>data-efficient training</em> and
-        <em>inference optimization / compression</em> using tensor methods. Alongside
-        research, I write and make videos that unpack the ideas behind modern AI from
+        I'm a machine learning engineer focused on <em>inference optimization</em>,
+        <em>model compression</em>, and <em>data-efficient training</em>, shipping models that run
+        faster, smaller, and cheaper. My research in tensor methods feeds directly into that work.
+        Alongside it, I write and make videos that unpack the ideas behind modern AI from
         first principles. I also run
         <a href="https://www.facebook.com/profile.php?id=61589936027422" target="_blank" rel="noopener">Frontier ML Nepal</a>,
         a community for people exploring machine learning in Nepal.
@@ -261,6 +309,47 @@
         and technical writing or teaching. If you're building something I can help with,
         <a href="mailto:ashish.jhav1@hotmail.com">get in touch</a>.
       </p>
+    </section>
+
+    <!-- ============================================================
+         SELECTED WORK  —  duplicate an <a class="entry work"> per project
+         ============================================================ -->
+    <section id="work">
+      <h2>Selected Work</h2>
+
+      <div class="work-grid">
+
+        <div class="card">
+          <p class="title">mHC-nanoGPT</p>
+          <p class="desc">DeepSeek-V4 training tricks on nanoGPT: Muon optimizer, SVD-free Newton-Schulz, hyper-connections.</p>
+          <div class="tech"><span class="chip">PyTorch</span><span class="chip">Optimizers</span><span class="chip">Transformers</span></div>
+          <div class="links"><a href="https://github.com/ashishjv1/mHC" target="_blank" rel="noopener">GitHub ↗</a></div>
+        </div>
+
+        <div class="card">
+          <p class="title">GRAFT <span class="repo">★ 6 · paper + code</span></p>
+          <p class="desc">Gradient-aware data sampling that trains on 25% of the data while holding accuracy.</p>
+          <div class="tech"><span class="chip">PyTorch</span><span class="chip">Data-efficient</span><span class="chip">Caltech-256</span></div>
+          <div class="links"><a href="https://github.com/ashishjv1/GRAFT" target="_blank" rel="noopener">GitHub ↗</a><a href="https://wandb.ai/murd0ckbl3ak/Smart_Sampling_resnet18_imagenet_caltech256" target="_blank" rel="noopener">W&amp;B runs ↗</a></div>
+        </div>
+
+        <div class="card">
+          <p class="title">HumanEvalFix Agent</p>
+          <p class="desc">ReAct agent (LangGraph) that fixes buggy Python in a sandboxed loop.</p>
+          <div class="tech"><span class="chip">LangGraph</span><span class="chip">Agents</span><span class="chip">Eval</span></div>
+          <div class="links"><a href="https://github.com/ashishjv1/Evaluation-of-LLM-Based-Agentic-Systems-for-Software-Development-Tasks" target="_blank" rel="noopener">GitHub ↗</a></div>
+        </div>
+
+        <div class="card">
+          <p class="title">Code Search · Fine-Tuning</p>
+          <p class="desc">Semantic code search with contrastive fine-tuning of embeddings on CoSQA.</p>
+          <div class="tech"><span class="chip">Fine-tuning</span><span class="chip">Embeddings</span><span class="chip">Retrieval</span></div>
+          <div class="links"><a href="https://github.com/ashishjv1/ML-for-Context-in-AI-Assistant" target="_blank" rel="noopener">GitHub ↗</a></div>
+        </div>
+
+      </div>
+
+      <p class="more"><a href="https://github.com/ashishjv1?tab=repositories">More on GitHub →</a></p>
     </section>
 
     <!-- ============================================================
