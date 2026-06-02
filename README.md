@@ -8,10 +8,9 @@ Open `index.html` and look for the `EDIT` / `[bracketed]` / `YOUR_...` markers:
 
 - **Header** — your name, tagline, and photo. The photo always loads `avatar.png`; to
   change it, just save a new square image over `avatar.png` (same name) — no code changes.
-- **Cover banner** — the wide photo strip at the top loads `banner.jpg` (a hobby shot —
-  alps, cycling, etc.). Drop a wide image named `banner.jpg` in this folder to set it; a
-  soft gradient shows until then. Same no-code swap as the avatar.
-- **About** — the two intro paragraphs and the links row (email, GitHub, Twitter, Scholar, CV).
+- **Cover banner** — a full-bleed blue gradient strip at the top. Edit the colors in the
+  `.banner` rule in the `<style>` block (the `linear-gradient(...)` line).
+- **About** — the two intro paragraphs.
 - **About** — the two intro paragraphs.
 - **Publications** — one `<li>` block per paper (manual; copy a block to add one).
 - **Writing** / **Videos** — auto-updated (see below). To edit by hand, change the entries

@@ -74,14 +74,11 @@
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
-    /* ---------- Cover banner (hobby photo) — full-bleed across the top ---------- */
+    /* ---------- Cover banner — full-bleed blue gradient across the top ---------- */
     .banner {
       position: relative;
       width: 100%; height: 320px;
-      background-image: url("banner.jpg"),
-        linear-gradient(120deg, var(--accent-soft) 0%, #dfe6e1 60%, #cfd9e6 100%);
-      background-size: cover; background-position: center 40%;
-      background-repeat: no-repeat;
+      background: linear-gradient(120deg, #1b3a5b 0%, #2f6098 50%, #4f86c6 100%);
     }
     /* fade the bottom of the banner into the page so overlapping text stays readable */
     .banner::after {
@@ -241,19 +238,12 @@
       </div>
     </header>
 
-    <!-- ---------- Brand buttons (edit YOUR_USERNAME / YOUR_HANDLE) ---------- -->
+    <!-- ---------- Top links: only items NOT already linked within a section.
+         (YouTube, Scholar, Substack live in their own sections below.) ---------- -->
     <div class="btns">
-      <a class="btn youtube" href="https://www.youtube.com/@Convergence-x6c" target="_blank" rel="noopener">
-        <svg class="ic-youtube" viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg>
-        YouTube
-      </a>
-      <a class="btn scholar" href="https://scholar.google.com/citations?user=vEignyAAAAAJ&hl=en" target="_blank" rel="noopener">
-        <svg class="ic-scholar" viewBox="0 0 24 24"><path d="M12 24a7 7 0 1 1 0-14 7 7 0 0 1 0 14zm0-24L0 9.5l4.8 3.7A8.9 8.9 0 0 1 12 9.5a8.9 8.9 0 0 1 7.2 3.7L24 9.5 12 0z"/></svg>
-        Scholar
-      </a>
-      <a class="btn substack" href="https://ashishjhav1.substack.com" target="_blank" rel="noopener">
-        <svg class="ic-substack" viewBox="0 0 24 24"><path d="M22 5.6H2V3.3h20v2.3zM2 8v13l10-5.6L22 21V8H2z"/></svg>
-        Substack
+      <a class="btn email" href="mailto:ashish.jhav1@hotmail.com">
+        <svg class="ic-email" viewBox="0 0 24 24"><path d="M2 4h20a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm10 8.7L3.4 6.2 2 7.3l10 7.6 10-7.6-1.4-1.1L12 12.7z"/></svg>
+        Email
       </a>
       <a class="btn github" href="https://github.com/ashishjv1" target="_blank" rel="noopener">
         <svg class="ic-github" viewBox="0 0 24 24"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.3-1.8-1.3-1.8-1.1-.7.1-.7.1-.7 1.2 0 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2 0-.4-.5-1.6.2-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.6.2 2.8.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z"/></svg>
@@ -262,10 +252,6 @@
       <a class="btn x" href="https://x.com/jha_ashish23342" target="_blank" rel="noopener">
         <svg class="ic-x" viewBox="0 0 24 24"><path d="M18.2 2H21l-6.4 7.3L22 22h-5.9l-4.6-6-5.3 6H2.3l6.9-7.8L2 2h6l4.2 5.5L18.2 2zm-2 18h1.6L7.9 3.7H6.2L16.2 20z"/></svg>
         X
-      </a>
-      <a class="btn email" href="mailto:ashish.jhav1@hotmail.com">
-        <svg class="ic-email" viewBox="0 0 24 24"><path d="M2 4h20a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1zm10 8.7L3.4 6.2 2 7.3l10 7.6 10-7.6-1.4-1.1L12 12.7z"/></svg>
-        Email
       </a>
       <!-- CV: always links to cv.pdf. To update, just replace cv.pdf in this folder — no code changes. -->
       <a class="btn cv" href="cv.pdf" target="_blank" rel="noopener">
