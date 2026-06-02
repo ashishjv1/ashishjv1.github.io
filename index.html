@@ -69,36 +69,20 @@
       line-height: 1.65;
       -webkit-font-smoothing: antialiased;
     }
-    .wrap { max-width: var(--max); margin: -92px auto 0; padding: 0 24px 96px; position: relative; z-index: 1; }
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 64px 24px 96px; }
 
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
-    /* ---------- Cover banner — full-bleed across the top.
-       Shows banner.jpg if present; otherwise the blue gradient below. ---------- */
-    .banner {
-      position: relative;
-      width: 100%; height: 300px;
-      background-image: url("banner.jpg"),
-        linear-gradient(120deg, #4a85c9 0%, #79b0e4 55%, #a7d0f2 100%);
-      background-size: cover; background-position: center;
-      background-repeat: no-repeat;
-    }
-    /* fade the bottom into the page so the overlapping header stays readable */
-    .banner::after {
-      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 140px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0), var(--bg));
-    }
-
-    /* ---------- Header — overlaps the bottom of the banner ---------- */
+    /* ---------- Header ---------- */
     header {
-      display: flex; align-items: flex-end; gap: 24px; margin-bottom: 18px;
+      display: flex; align-items: center; gap: 28px; margin-bottom: 22px;
     }
     .avatar {
-      width: 120px; height: 120px; border-radius: 50%;
+      width: 116px; height: 116px; border-radius: 50%;
       object-fit: cover; flex-shrink: 0;
       background: var(--accent-soft);
-      box-shadow: 0 0 0 5px var(--bg), 0 0 0 6px var(--border), var(--shadow);
+      box-shadow: 0 0 0 1px var(--border), var(--shadow);
     }
     h1 {
       font-family: "Newsreader", Georgia, serif;
@@ -211,11 +195,9 @@
     }
 
     @media (max-width: 560px) {
-      .wrap { margin-top: -66px; padding: 0 20px 72px; }
-      .banner { height: 200px; }
-      .banner::after { height: 90px; }
-      header { gap: 16px; }
-      .avatar { width: 84px; height: 84px; }
+      .wrap { padding: 44px 20px 72px; }
+      header { gap: 18px; }
+      .avatar { width: 88px; height: 88px; }
       h1 { font-size: 1.8rem; }
       .video-grid { grid-template-columns: 1fr; }
       ol.pubs li { grid-template-columns: 1fr; gap: 6px; }
@@ -224,10 +206,6 @@
   </style>
 </head>
 <body>
-  <!-- Cover banner: full-bleed light-blue gradient. Colors live in the
-       .banner rule in the <style> block above. -->
-  <div class="banner"></div>
-
   <div class="wrap">
 
     <!-- ============================================================
