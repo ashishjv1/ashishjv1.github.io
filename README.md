@@ -8,9 +8,9 @@ Open `index.html` and look for the `EDIT` / `[bracketed]` / `YOUR_...` markers:
 
 - **Header** — your name, tagline, and photo. The photo always loads `avatar.png`; to
   change it, just save a new square image over `avatar.png` (same name) — no code changes.
-- **Cover banner** — full-bleed strip at the top. Shows `banner.jpg` if you drop a wide
-  image with that name in this folder (no code changes); otherwise it falls back to a blue
-  gradient. Edit the gradient colors in the `.banner` rule in the `<style>` block.
+- **About photo(s)** — a framed photo sits beside the bio, loading `photo.jpg`. Swap that
+  file to change it (no code changes). To make it a collage, add more `<figure>` blocks in
+  the `.about-media` div (e.g. `photo2.jpg`, `photo3.jpg`); they auto-arrange into a grid.
 - **About** — the two intro paragraphs.
 - **About** — the two intro paragraphs.
 - **Publications** — one `<li>` block per paper (manual; copy a block to add one).
