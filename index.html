@@ -69,25 +69,22 @@
       line-height: 1.65;
       -webkit-font-smoothing: antialiased;
     }
-    .wrap { max-width: var(--max); margin: -104px auto 0; padding: 0 24px 96px; position: relative; z-index: 1; }
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 40px 24px 96px; }
 
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
-    /* ---------- Cover banner — full-bleed blue gradient across the top ---------- */
+    /* ---------- Cover banner — light-blue gradient, contained to the column ---------- */
     .banner {
-      position: relative;
-      width: 100%; height: 320px;
-      background: linear-gradient(120deg, #1b3a5b 0%, #2f6098 50%, #4f86c6 100%);
-    }
-    /* fade the bottom of the banner into the page so overlapping text stays readable */
-    .banner::after {
-      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 150px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0), var(--bg));
+      height: 190px; border-radius: 16px;
+      background: linear-gradient(120deg, #4a85c9 0%, #79b0e4 55%, #a7d0f2 100%);
     }
 
-    /* ---------- Header ---------- */
-    header { display: flex; align-items: flex-end; gap: 24px; margin-bottom: 18px; }
+    /* ---------- Header — overlaps the bottom of the banner ---------- */
+    header {
+      display: flex; align-items: flex-end; gap: 24px;
+      margin: -58px 0 18px; position: relative; z-index: 1;
+    }
     .avatar {
       width: 120px; height: 120px; border-radius: 50%;
       object-fit: cover; flex-shrink: 0;
@@ -205,11 +202,9 @@
     }
 
     @media (max-width: 560px) {
-      .wrap { margin-top: -72px; padding: 0 20px 72px; }
-      .banner { height: 220px; }
-      .banner::after { height: 100px; }
-      header { gap: 16px; }
-      .avatar { width: 92px; height: 92px; }
+      .wrap { padding: 28px 20px 72px; }
+      .banner { height: 140px; }
+      header { gap: 16px; margin-top: -46px; }
       .avatar { width: 84px; height: 84px; }
       h1 { font-size: 1.8rem; }
       .video-grid { grid-template-columns: 1fr; }
@@ -219,11 +214,11 @@
   </style>
 </head>
 <body>
-  <!-- Cover banner: shows banner.jpg (a hobby photo — alps, cycling, etc.).
-       To set or change it, drop a wide image named banner.jpg in this folder. -->
-  <div class="banner"></div>
-
   <div class="wrap">
+
+    <!-- Cover banner: light-blue gradient header panel. Colors live in the
+         .banner rule in the <style> block above. -->
+    <div class="banner"></div>
 
     <!-- ============================================================
          HEADER  —  replace name, tagline, photo (avatar.png)
