@@ -69,21 +69,26 @@
       line-height: 1.65;
       -webkit-font-smoothing: antialiased;
     }
-    .wrap { max-width: var(--max); margin: 0 auto; padding: 40px 24px 96px; }
+    .wrap { max-width: var(--max); margin: -92px auto 0; padding: 0 24px 96px; position: relative; z-index: 1; }
 
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
-    /* ---------- Cover banner — light-blue gradient, contained to the column ---------- */
+    /* ---------- Cover banner — full-bleed light-blue gradient across the top ---------- */
     .banner {
-      height: 190px; border-radius: 16px;
+      position: relative;
+      width: 100%; height: 300px;
       background: linear-gradient(120deg, #4a85c9 0%, #79b0e4 55%, #a7d0f2 100%);
+    }
+    /* fade the bottom into the page so the overlapping header stays readable */
+    .banner::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 140px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0), var(--bg));
     }
 
     /* ---------- Header — overlaps the bottom of the banner ---------- */
     header {
-      display: flex; align-items: flex-end; gap: 24px;
-      margin: -58px 0 18px; position: relative; z-index: 1;
+      display: flex; align-items: flex-end; gap: 24px; margin-bottom: 18px;
     }
     .avatar {
       width: 120px; height: 120px; border-radius: 50%;
@@ -202,9 +207,10 @@
     }
 
     @media (max-width: 560px) {
-      .wrap { padding: 28px 20px 72px; }
-      .banner { height: 140px; }
-      header { gap: 16px; margin-top: -46px; }
+      .wrap { margin-top: -66px; padding: 0 20px 72px; }
+      .banner { height: 200px; }
+      .banner::after { height: 90px; }
+      header { gap: 16px; }
       .avatar { width: 84px; height: 84px; }
       h1 { font-size: 1.8rem; }
       .video-grid { grid-template-columns: 1fr; }
@@ -214,11 +220,11 @@
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <!-- Cover banner: full-bleed light-blue gradient. Colors live in the
+       .banner rule in the <style> block above. -->
+  <div class="banner"></div>
 
-    <!-- Cover banner: light-blue gradient header panel. Colors live in the
-         .banner rule in the <style> block above. -->
-    <div class="banner"></div>
+  <div class="wrap">
 
     <!-- ============================================================
          HEADER  —  replace name, tagline, photo (avatar.png)
