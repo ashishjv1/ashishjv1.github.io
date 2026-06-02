@@ -74,11 +74,15 @@
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
 
-    /* ---------- Cover banner — full-bleed light-blue gradient across the top ---------- */
+    /* ---------- Cover banner — full-bleed across the top.
+       Shows banner.jpg if present; otherwise the blue gradient below. ---------- */
     .banner {
       position: relative;
       width: 100%; height: 300px;
-      background: linear-gradient(120deg, #4a85c9 0%, #79b0e4 55%, #a7d0f2 100%);
+      background-image: url("banner.jpg"),
+        linear-gradient(120deg, #4a85c9 0%, #79b0e4 55%, #a7d0f2 100%);
+      background-size: cover; background-position: center;
+      background-repeat: no-repeat;
     }
     /* fade the bottom into the page so the overlapping header stays readable */
     .banner::after {

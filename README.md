@@ -8,8 +8,9 @@ Open `index.html` and look for the `EDIT` / `[bracketed]` / `YOUR_...` markers:
 
 - **Header** — your name, tagline, and photo. The photo always loads `avatar.png`; to
   change it, just save a new square image over `avatar.png` (same name) — no code changes.
-- **Cover banner** — a full-bleed blue gradient strip at the top. Edit the colors in the
-  `.banner` rule in the `<style>` block (the `linear-gradient(...)` line).
+- **Cover banner** — full-bleed strip at the top. Shows `banner.jpg` if you drop a wide
+  image with that name in this folder (no code changes); otherwise it falls back to a blue
+  gradient. Edit the gradient colors in the `.banner` rule in the `<style>` block.
 - **About** — the two intro paragraphs.
 - **About** — the two intro paragraphs.
 - **Publications** — one `<li>` block per paper (manual; copy a block to add one).
