@@ -128,16 +128,6 @@
     p { margin: 0 0 18px; }
     .lead { font-size: 1.08rem; }
 
-    /* ---------- About: bio text + photo(s) beside it ---------- */
-    .about { display: grid; grid-template-columns: 1fr 200px; gap: 34px; align-items: start; }
-    .about-text p:last-child { margin-bottom: 0; }
-    .about-media { display: grid; grid-template-columns: 1fr; gap: 12px; }
-    .about-media figure { margin: 0; }
-    .about-media img {
-      display: block; width: 100%; height: auto; border-radius: 12px;
-      box-shadow: 0 0 0 1px var(--border), var(--shadow);
-    }
-
     /* ---------- Publications ---------- */
     ol.pubs { list-style: none; margin: 0; padding: 0; counter-reset: pub; }
     ol.pubs li {
@@ -208,8 +198,6 @@
       .wrap { padding: 44px 20px 72px; }
       header { gap: 18px; }
       .avatar { width: 88px; height: 88px; }
-      .about { grid-template-columns: 1fr; gap: 22px; }
-      .about-media { grid-template-columns: 1fr 1fr; max-width: 320px; }
       h1 { font-size: 1.8rem; }
       .video-grid { grid-template-columns: 1fr; }
       ol.pubs li { grid-template-columns: 1fr; gap: 6px; }
@@ -258,30 +246,21 @@
     <!-- ============================================================
          ABOUT
          ============================================================ -->
-    <section id="about" class="about">
-      <div class="about-text">
-        <p class="lead">
-          I'm a machine learning researcher working on <em>data-efficient training</em> -
-          subset selection, gradient sketching, and tensor methods that make models
-          learn more from less. Alongside research, I write and make videos that unpack
-          the ideas behind modern AI from first principles. I also run
-          <a href="https://www.facebook.com/profile.php?id=61589936027422" target="_blank" rel="noopener">Frontier ML Nepal</a>,
-          a community for people exploring machine learning in Nepal.
-        </p>
-        <p>
-          I'm currently open to <strong>freelance and consulting work</strong> in machine
-          learning: research prototyping, model optimization and data-efficient training,
-          and technical writing or explainer content. If you're building something I can
-          help with, <a href="mailto:ashish.jhav1@hotmail.com">get in touch</a>.
-        </p>
-      </div>
-      <!-- Photos beside the bio. Add more <figure>s here and they'll form a grid.
-           Each image loads its file by name; swap the file to change the photo. -->
-      <div class="about-media">
-        <figure>
-          <img src="photo.jpg" alt="" loading="lazy" onerror="this.closest('figure').style.display='none'" />
-        </figure>
-      </div>
+    <section id="about">
+      <p class="lead">
+        I'm a machine learning researcher working on <em>data-efficient training</em> -
+        subset selection, gradient sketching, and tensor methods that make models
+        learn more from less. Alongside research, I write and make videos that unpack
+        the ideas behind modern AI from first principles. I also run
+        <a href="https://www.facebook.com/profile.php?id=61589936027422" target="_blank" rel="noopener">Frontier ML Nepal</a>,
+        a community for people exploring machine learning in Nepal.
+      </p>
+      <p>
+        I'm currently open to <strong>freelance and consulting work</strong> in machine
+        learning: research prototyping, model optimization and data-efficient training,
+        and technical writing or explainer content. If you're building something I can
+        help with, <a href="mailto:ashish.jhav1@hotmail.com">get in touch</a>.
+      </p>
     </section>
 
     <!-- ============================================================
