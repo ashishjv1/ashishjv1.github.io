@@ -87,6 +87,27 @@ The **raw IP address is never stored** — only the country/city Vercel derives 
 it. There are no cookies and no per-person identifiers, so the dashboard shows
 *where/when/how* traffic arrives, never *who*.
 
+## Curating what shows on the portfolio
+
+The dashboard's **"Show on portfolio"** section lets you tick exactly which videos
+and articles appear on the homepage — no code edits.
+
+```
+admin.html  ──tick + Save──▶  POST /api/picks (token)  ──▶  Upstash "picks"
+index.html  ──on load──▶  GET /api/catalog (all items) + GET /api/picks  ──▶  renders your selection
+```
+
+- `api/catalog.js` — fetches + parses the YouTube and Substack feeds into JSON
+  (`{videos, articles}`), edge-cached. Powers both the checkboxes and the homepage.
+- `api/picks.js` — `GET` returns the saved selection (public, always fresh);
+  `POST` saves it (requires `X-Admin-Token`).
+- The homepage's Videos/Writing lists are rendered client-side from your picks.
+  If a column is left empty, it falls back to the latest items. If the API is
+  unreachable, the statically-baked lists (from `update.py`) remain as a fallback.
+
+Selection order follows the catalog (newest first). Changes are live on the
+homepage as soon as you save and reload (the `/api/picks` read is uncached).
+
 ## Notes & limits
 
 - **Privacy:** no cookies, no raw IPs, no names — just counters and coarse,
