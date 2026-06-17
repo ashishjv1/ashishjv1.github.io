@@ -31,13 +31,25 @@ You need your Vercel account. The functions live in this same repo under `api/`.
    import `ashishjv1/ashishjv1.github.io`. Zero config — it auto-detects the
    `api/` functions. Name the project something like `portfolio-api`.
 
-2. **Add Upstash Redis.** In the project → *Storage* → *Marketplace* →
-   **Upstash Redis** → create a free database and connect it. This auto-adds the
-   `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` env vars that
-   `Redis.fromEnv()` reads.
+2. **Create an Upstash Redis database.** Two routes — pick whichever you can find:
 
-3. **Set the dashboard password.** Project → *Settings → Environment Variables* →
-   add `ADMIN_TOKEN` = any strong string you choose. Redeploy so it takes effect.
+   **a) Direct (recommended, least fiddly).** Go to <https://console.upstash.com>,
+   sign in (GitHub login works), *Create Database → Redis*, choose a region near
+   your Vercel functions and the free tier. On the database page open the
+   **REST API** section and copy `UPSTASH_REDIS_REST_URL` and
+   `UPSTASH_REDIS_REST_TOKEN`. You'll paste these into Vercel in the next step.
+
+   **b) Via Vercel.** Project (or team) → *Storage* → *Create Database* →
+   *Marketplace Database Providers* → **Upstash**. This connects it and adds the
+   two env vars automatically. (Vercel moves this around; if it's not in the
+   project's Storage tab, look in the team-level top nav. If you can't find it,
+   use route (a).)
+
+3. **Set the env vars.** Project → *Settings → Environment Variables*. If you used
+   route (a), add `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` from
+   Upstash. Either way, also add `ADMIN_TOKEN` = any strong string you choose
+   (this is the dashboard password). Redeploy so they take effect — these two
+   names are exactly what `Redis.fromEnv()` reads.
 
 4. **Grab the project URL,** e.g. `https://portfolio-api.vercel.app`.
 
