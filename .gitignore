@@ -1,6 +1,7 @@
 # Local editor / tooling
 _shot.png
 *.tmp
+__pycache__/
 
 # Analytics backend (Vercel) build artifacts
 node_modules/
