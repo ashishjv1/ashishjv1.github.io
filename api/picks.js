@@ -12,7 +12,7 @@ const ALLOWED_ORIGINS = [
   "http://localhost:8000",
 ];
 
-const EMPTY = { videos: [], articles: [], repos: [] };
+const EMPTY = { videos: [], articles: [], repos: [], repoMeta: {} };
 const redis = Redis.fromEnv();
 
 export default async function handler(req, res) {
@@ -49,11 +49,31 @@ export default async function handler(req, res) {
   return res.status(405).end("method not allowed");
 }
 
-// Coerce to { videos:[strings], articles:[strings], repos:[strings] }, capped + de-duped.
+// Coerce to a safe, capped shape. repoMeta carries per-repo card overrides:
+//   repoMeta: { "<repo-name>": { desc: "…", links: [{label,url}] } }
 function normalize(p) {
   const arr = (x) =>
     Array.isArray(x)
       ? [...new Set(x.filter((s) => typeof s === "string").map((s) => s.trim()).filter(Boolean))].slice(0, 50)
       : [];
-  return { videos: arr(p.videos), articles: arr(p.articles), repos: arr(p.repos) };
+
+  const meta = {};
+  if (p && p.repoMeta && typeof p.repoMeta === "object") {
+    for (const name of Object.keys(p.repoMeta).slice(0, 50)) {
+      const m = p.repoMeta[name] || {};
+      const desc = typeof m.desc === "string" ? m.desc.trim().slice(0, 300) : "";
+      const links = Array.isArray(m.links)
+        ? m.links
+            .filter((l) => l && typeof l.url === "string" && l.url.trim())
+            .map((l) => ({
+              label: String(l.label || "Link").trim().slice(0, 40),
+              url: l.url.trim().slice(0, 400),
+            }))
+            .slice(0, 6)
+        : [];
+      if (desc || links.length) meta[String(name).slice(0, 100)] = { desc, links };
+    }
+  }
+
+  return { videos: arr(p.videos), articles: arr(p.articles), repos: arr(p.repos), repoMeta: meta };
 }

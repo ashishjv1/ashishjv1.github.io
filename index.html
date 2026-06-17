@@ -505,8 +505,12 @@
         }).join("\n");
       }
 
-      function renderRepos(items) {
+      function renderRepos(items, meta) {
         return items.map(function (r) {
+          var ov = (meta && meta[r.name]) || {};
+          var desc = ov.desc || r.desc;
+          // Custom links you set in the admin panel override the code defaults.
+          var custom = (ov.links && ov.links.length) ? ov.links : (r.links || []);
           var star = r.stars > 0 ? ' <span class="repo">★ ' + r.stars + '</span>' : '';
           var chips = [];
           if (r.language) chips.push(r.language);
@@ -516,11 +520,11 @@
             : '';
           var links = '<a href="' + esc(r.url) + '" target="_blank" rel="noopener">GitHub ↗</a>';
           if (r.homepage) links += '<a href="' + esc(r.homepage) + '" target="_blank" rel="noopener">Live ↗</a>';
-          (r.links || []).forEach(function (l) {
+          custom.forEach(function (l) {
             links += '<a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.label) + ' ↗</a>';
           });
           return '<div class="card"><p class="title">' + esc(r.name) + star + '</p>' +
-            '<p class="desc">' + esc(r.desc) + '</p>' + tech +
+            '<p class="desc">' + esc(desc) + '</p>' + tech +
             '<div class="links">' + links + '</div></div>';
         }).join("\n");
       }
@@ -544,7 +548,7 @@
           (cat.repos || []).forEach(function (r) { by[r.name] = r; });
           var repos = picks.repos.map(function (n) { return by[n]; }).filter(Boolean);
           var gl = document.getElementById("work-grid");
-          if (gl && repos.length) gl.innerHTML = renderRepos(repos);
+          if (gl && repos.length) gl.innerHTML = renderRepos(repos, picks.repoMeta || {});
         }
       }).catch(function () { /* keep the statically-baked fallback */ });
     })();

@@ -115,6 +115,25 @@
     .pick .m { display: block; font-size: 0.74rem; color: var(--faint); margin-top: 2px; }
     .save-row { display: flex; align-items: center; gap: 14px; margin-top: 20px; }
     #save-msg { font-size: 0.88rem; color: var(--muted); }
+
+    /* Per-repo customization editors */
+    .cz-h { font-size: 0.92rem; margin: 26px 0 12px; color: var(--text); }
+    .repo-edit { border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; background: var(--surface); }
+    .re-head { font-weight: 600; font-size: 0.9rem; margin-bottom: 8px; }
+    .re-desc { width: 100%; font: inherit; font-size: 0.88rem; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); margin-bottom: 8px; }
+    .re-link { display: flex; gap: 8px; margin-bottom: 6px; }
+    .re-link .re-label { flex: 0 0 38%; }
+    .re-link .re-url { flex: 1; }
+    .re-link input { font: inherit; font-size: 0.84rem; padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); min-width: 0; }
+    .re-del { background: transparent; color: var(--faint); border: 1px solid var(--border); border-radius: 8px; padding: 0 11px; font-size: 1.05rem; cursor: pointer; }
+    .re-add { background: transparent; color: var(--accent); border: 1px dashed var(--border); border-radius: 8px; padding: 6px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+
+    /* Activity controls + row checkboxes */
+    .feed-controls { display: flex; gap: 10px; align-items: center; margin: -6px 0 12px; }
+    .feed-controls button { padding: 7px 13px; font-size: 0.85rem; }
+    #evt-msg { font-size: 0.84rem; color: var(--faint); }
+    td.cb, th.cb { width: 26px; text-align: center; }
+    td .evt-cb { accent-color: var(--accent); }
     @media (max-width: 560px) { .picks-grid { grid-template-columns: 1fr; gap: 18px; } }
 
     .empty { color: var(--faint); font-size: 0.95rem; }
@@ -155,10 +174,15 @@
       <div id="clicks"></div>
 
       <h2>Recent activity</h2>
+      <div class="feed-controls">
+        <button class="ghost" id="del-events">Delete selected</button>
+        <button class="ghost" id="clear-events">Clear all</button>
+        <span id="evt-msg"></span>
+      </div>
       <div class="feed-wrap">
         <table id="feed">
           <thead>
-            <tr><th>When (local)</th><th>Event</th><th>Location</th><th>Source</th><th>Device</th></tr>
+            <tr><th class="cb"><input type="checkbox" id="cb-all" title="Select all"></th><th>When (local)</th><th>Event</th><th>Location</th><th>Source</th><th>Device</th></tr>
           </thead>
           <tbody id="feedbody"></tbody>
         </table>
@@ -171,6 +195,9 @@
         <div><h3>Articles</h3><div id="pick-articles"><p class="empty">Loading…</p></div></div>
         <div><h3>GitHub repos</h3><div id="pick-repos"><p class="empty">Loading…</p></div></div>
       </div>
+
+      <div id="repo-customize"></div>
+
       <div class="save-row">
         <button id="save-picks">Save selection</button>
         <span id="save-msg"></span>
@@ -187,6 +214,9 @@
     var endpoint = (window.ANALYTICS_ENDPOINT || "").replace(/\/$/, "");
     var $ = function (id) { return document.getElementById(id); };
     var TOKEN = "";
+    var CAT = { videos: [], articles: [], repos: [] };
+    var PICKS = {};
+    var DRAFT = {}; // repo name -> { desc, links:[{label,url}] } being edited
 
     function show(view) {
       $("login").classList.toggle("hidden", view !== "login");
@@ -263,7 +293,7 @@
       // ---- recent activity feed ----
       var events = data.events || [];
       if (!events.length) {
-        $("feedbody").innerHTML = '<tr><td colspan="5" class="empty" style="padding:16px">No activity recorded yet.</td></tr>';
+        $("feedbody").innerHTML = '<tr><td colspan="6" class="empty" style="padding:16px">No activity recorded yet.</td></tr>';
       } else {
         $("feedbody").innerHTML = events.map(function (e) {
           var when = e.t ? new Date(e.t).toLocaleString() : "";
@@ -273,8 +303,10 @@
           var loc = (flag(e.country) + (e.city ? esc(e.city) : (e.country && e.country !== "?" ? esc(e.country) : "—"))).trim() || "—";
           var src = e.ref && e.ref !== "direct" ? esc(e.ref) : '<span class="muted">direct</span>';
           var dev = esc((e.device || "") + (e.browser ? " · " + e.browser : ""));
+          var cb = e.id ? '<input type="checkbox" class="evt-cb" value="' + esc(e.id) + '">' : '';
           return (
             '<tr>' +
+              '<td class="cb">' + cb + '</td>' +
               '<td class="muted">' + esc(when) + '</td>' +
               '<td class="what">' + what + '</td>' +
               '<td>' + loc + '</td>' +
@@ -323,20 +355,99 @@
         fetch(endpoint + "/api/picks").then(function (r) { return r.json(); })
       ]).then(function (res) {
         var cat = res[0] || {}, picks = res[1] || {};
+        CAT = cat;
+        PICKS = picks;
+        DRAFT = JSON.parse(JSON.stringify(picks.repoMeta || {}));
         renderPicks(cat.videos || [], picks.videos, "pick-videos", "video");
         renderPicks(cat.articles || [], picks.articles, "pick-articles", "article");
         renderPicks(cat.repos || [], picks.repos, "pick-repos", "repo");
+        renderCustomize();
       }).catch(function () {
         $("pick-videos").innerHTML = $("pick-articles").innerHTML = $("pick-repos").innerHTML =
           '<p class="empty">Could not load the catalog.</p>';
       });
     }
 
+    // ---- Per-repo card customization ----
+    function tickedRepos() {
+      return [].slice.call($("pick-repos").querySelectorAll("input:checked")).map(function (i) { return i.value; });
+    }
+    function repoByName(n) {
+      return (CAT.repos || []).filter(function (r) { return r.name === n; })[0];
+    }
+    function linkRow(l) {
+      l = l || {};
+      return '<div class="re-link">' +
+        '<input class="re-label" placeholder="Label (e.g. W&amp;B runs)" value="' + esc(l.label || "") + '">' +
+        '<input class="re-url" placeholder="https://…" value="' + esc(l.url || "") + '">' +
+        '<button type="button" class="re-del" title="Remove">×</button></div>';
+    }
+    function captureDraft() {
+      [].slice.call(document.querySelectorAll("#repo-customize .repo-edit")).forEach(function (box) {
+        var name = box.getAttribute("data-name");
+        var links = [].slice.call(box.querySelectorAll(".re-link")).map(function (row) {
+          return { label: row.querySelector(".re-label").value.trim(), url: row.querySelector(".re-url").value.trim() };
+        }).filter(function (l) { return l.url; });
+        DRAFT[name] = { desc: box.querySelector(".re-desc").value, links: links };
+      });
+    }
+    function renderCustomize() {
+      var names = tickedRepos();
+      var host = $("repo-customize");
+      if (!names.length) { host.innerHTML = ""; return; }
+      host.innerHTML = '<h3 class="cz-h">Customize selected repos</h3>' + names.map(function (name) {
+        var r = repoByName(name) || { desc: "", links: [] };
+        var d = DRAFT[name] || {};
+        var links = (d.links && d.links.length) ? d.links : (r.links || []);
+        var rows = links.length ? links.map(linkRow).join("") : "";
+        return '<div class="repo-edit" data-name="' + esc(name) + '">' +
+          '<div class="re-head">' + esc(name) + '</div>' +
+          '<input class="re-desc" placeholder="' + esc(r.desc || "Description (defaults to GitHub)") + '" value="' + esc(d.desc || "") + '">' +
+          '<div class="re-links">' + rows + '</div>' +
+          '<button type="button" class="re-add">+ add link</button>' +
+          '</div>';
+      }).join("");
+    }
+
+    // ---- Delete / clear activity ----
+    function postEvents(body, okMsg) {
+      $("evt-msg").textContent = "Working…";
+      fetch(endpoint + "/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Token": TOKEN },
+        body: JSON.stringify(body)
+      })
+        .then(function (r) {
+          if (r.status === 401) throw new Error("Not authorized.");
+          if (!r.ok) throw new Error("Failed (" + r.status + ").");
+          return r.json();
+        })
+        .then(function () { $("evt-msg").textContent = okMsg; load(TOKEN); })
+        .catch(function (e) { $("evt-msg").textContent = e.message; });
+    }
+    function deleteSelectedEvents() {
+      var ids = [].slice.call(document.querySelectorAll("#feedbody .evt-cb:checked")).map(function (i) { return i.value; });
+      if (!ids.length) { $("evt-msg").textContent = "Nothing selected."; return; }
+      postEvents({ ids: ids }, "Deleted " + ids.length + ".");
+    }
+    function clearAllEvents() {
+      postEvents({ all: true }, "Cleared.");
+    }
+
     function savePicks() {
       var grab = function (id) {
         return [].slice.call($(id).querySelectorAll("input:checked")).map(function (i) { return i.value; });
       };
-      var payload = { videos: grab("pick-videos"), articles: grab("pick-articles"), repos: grab("pick-repos") };
+      captureDraft();
+      var repos = grab("pick-repos");
+      var repoMeta = {};
+      repos.forEach(function (name) {
+        var d = DRAFT[name];
+        if (!d) return;
+        var links = (d.links || []).filter(function (l) { return l.url; });
+        if ((d.desc && d.desc.trim()) || links.length) repoMeta[name] = { desc: (d.desc || "").trim(), links: links };
+      });
+      var payload = { videos: grab("pick-videos"), articles: grab("pick-articles"), repos: repos, repoMeta: repoMeta };
       $("save-msg").textContent = "Saving…";
       fetch(endpoint + "/api/picks", {
         method: "POST",
@@ -387,6 +498,25 @@
       show("login");
     });
     $("save-picks").addEventListener("click", savePicks);
+
+    // Re-render the repo editors when the repo selection changes (keeping edits).
+    $("pick-repos").addEventListener("change", function () { captureDraft(); renderCustomize(); });
+    // Add / remove custom link rows.
+    $("repo-customize").addEventListener("click", function (e) {
+      if (e.target.classList.contains("re-add")) {
+        e.target.previousElementSibling.insertAdjacentHTML("beforeend", linkRow({}));
+      } else if (e.target.classList.contains("re-del")) {
+        e.target.closest(".re-link").remove();
+      }
+    });
+
+    // Activity delete / clear.
+    $("del-events").addEventListener("click", deleteSelectedEvents);
+    $("clear-events").addEventListener("click", clearAllEvents);
+    $("cb-all").addEventListener("change", function () {
+      var on = this.checked;
+      [].slice.call(document.querySelectorAll("#feedbody .evt-cb")).forEach(function (c) { c.checked = on; });
+    });
 
     // Auto-load if a token is already in this session.
     var saved = sessionStorage.getItem("admin_token");

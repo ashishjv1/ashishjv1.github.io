@@ -51,6 +51,7 @@ export default async function handler(req, res) {
   const ua = parseUA(req.headers["user-agent"]);
 
   const event = {
+    id: now.getTime().toString(36) + "-" + Math.random().toString(36).slice(2, 8),
     t: now.getTime(),
     type,
     label,
