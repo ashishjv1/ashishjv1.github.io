@@ -50,6 +50,16 @@ BROWSER_HEADERS = {
 
 
 def fetch(url):
+    # Cloudflare also fingerprints the TLS handshake, which plain urllib fails.
+    # Prefer curl_cffi (impersonates a real Chrome handshake) when available;
+    # fall back to urllib for local runs where it isn't installed / isn't needed.
+    try:
+        from curl_cffi import requests as cffi_requests
+        r = cffi_requests.get(url, impersonate="chrome", timeout=30)
+        if r.status_code == 200:
+            return r.content
+    except Exception:
+        pass
     req = urllib.request.Request(url, headers=BROWSER_HEADERS)
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.read()

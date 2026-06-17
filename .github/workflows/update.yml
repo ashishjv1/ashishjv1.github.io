@@ -25,6 +25,9 @@ jobs:
         with:
           python-version: "3.x"
 
+      - name: Install fetch deps
+        run: pip install curl_cffi
+
       - name: Refresh feeds
         run: python update.py
 
