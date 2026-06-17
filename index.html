@@ -350,6 +350,7 @@
          ============================================================ -->
     <section id="videos">
       <h2>Videos</h2>
+      <div id="video-list">
       <!-- AUTO-VIDEOS:START — generated from YouTube RSS by update.py / GitHub Action. Do not edit by hand. -->
       <a class="entry vid" href="https://youtu.be/7aJP_FBPJSM" target="_blank" rel="noopener">
         <svg class="yt-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg>
@@ -360,6 +361,7 @@
         <span class="title">The Most Beautiful Trick in DeepSeek V4’s Paper, Part 1</span>
       </a>
       <!-- AUTO-VIDEOS:END -->
+      </div>
       <p class="more"><a href="https://www.youtube.com/@Convergence-x6c">More on the Convergence channel →</a></p>
     </section>
 
@@ -368,6 +370,7 @@
          ============================================================ -->
     <section id="writing">
       <h2>Writing</h2>
+      <div id="writing-list">
       <!-- AUTO-WRITING:START — generated from Substack RSS by update.py / GitHub Action. Do not edit by hand. -->
       <a class="entry" href="https://ashishjhav1.substack.com/p/the-last-conversation" target="_blank" rel="noopener">
         <p class="meta"><span class="src substack">Substack</span> · Jun 2026</p>
@@ -405,6 +408,7 @@
         <p class="desc">Part 1: The SVD and Muon</p>
       </a>
       <!-- AUTO-WRITING:END -->
+      </div>
       <p class="more"><a href="https://ashishjhav1.substack.com">All posts on Substack →</a></p>
     </section>
 
@@ -453,6 +457,66 @@
           .replace(/\s+/g, " ").trim().slice(0, 80);
         send({ type: "click", label: label, href: a.href, ref: ref });
       }, true);
+    })();
+  </script>
+
+  <!-- ============================================================
+       CURATED CONTENT  —  renders the Videos/Writing you ticked in the
+       admin panel. Reads your saved selection (/api/picks) + the full
+       catalog (/api/catalog) from Vercel. If anything fails, the
+       statically-baked lists above remain as a fallback.
+       ============================================================ -->
+  <script>
+    (function () {
+      var API = "https://portfolio-api-two-rho.vercel.app";
+      if (!API || API.indexOf("YOUR-PROJECT") !== -1) return;
+
+      var YT_IC = '<svg class="yt-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg>';
+
+      function esc(s) {
+        return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+          return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+        });
+      }
+
+      // Selected items in saved order; falls back to the latest `max` when nothing is picked.
+      function choose(items, picks, keyFn, max) {
+        if (picks && picks.length) {
+          var by = {};
+          items.forEach(function (it) { by[keyFn(it)] = it; });
+          return picks.map(function (k) { return by[k]; }).filter(Boolean);
+        }
+        return items.slice(0, max);
+      }
+
+      function renderVideos(items) {
+        return items.map(function (v) {
+          return '<a class="entry vid" href="' + esc(v.url) + '" target="_blank" rel="noopener">' +
+            YT_IC + '<span class="title">' + esc(v.title) + '</span></a>';
+        }).join("\n");
+      }
+
+      function renderArticles(items) {
+        return items.map(function (a) {
+          return '<a class="entry" href="' + esc(a.url) + '" target="_blank" rel="noopener">' +
+            '<p class="meta"><span class="src substack">Substack</span> · ' + esc(a.date) + '</p>' +
+            '<p class="title">' + esc(a.title) + '</p>' +
+            '<p class="desc">' + esc(a.desc) + '</p></a>';
+        }).join("\n");
+      }
+
+      Promise.all([
+        fetch(API + "/api/catalog").then(function (r) { return r.json(); }),
+        fetch(API + "/api/picks").then(function (r) { return r.json(); })
+      ]).then(function (res) {
+        var cat = res[0] || {}, picks = res[1] || {};
+        var vids = choose(cat.videos || [], picks.videos, function (v) { return v.id; }, 6);
+        var arts = choose(cat.articles || [], picks.articles, function (a) { return a.slug; }, 6);
+        var vl = document.getElementById("video-list");
+        var wl = document.getElementById("writing-list");
+        if (vl && vids.length) vl.innerHTML = renderVideos(vids);
+        if (wl && arts.length) wl.innerHTML = renderArticles(arts);
+      }).catch(function () { /* keep the statically-baked fallback */ });
     })();
   </script>
 </body>

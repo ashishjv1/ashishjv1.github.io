@@ -104,6 +104,19 @@
     .feed-wrap { border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); overflow: auto; max-height: 460px; }
     td .muted { color: var(--faint); }
 
+    /* Pick lists */
+    .hint { color: var(--muted); font-size: 0.9rem; margin: -6px 0 14px; }
+    .picks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+    .picks-grid h3 { font-size: 0.92rem; margin: 0 0 10px; color: var(--text); }
+    .pick { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 9px; cursor: pointer; }
+    .pick:hover { background: var(--accent-soft); }
+    .pick input { margin-top: 4px; flex-shrink: 0; accent-color: var(--accent); width: 16px; height: 16px; }
+    .pick .t { font-size: 0.9rem; color: var(--text); line-height: 1.35; }
+    .pick .m { display: block; font-size: 0.74rem; color: var(--faint); margin-top: 2px; }
+    .save-row { display: flex; align-items: center; gap: 14px; margin-top: 20px; }
+    #save-msg { font-size: 0.88rem; color: var(--muted); }
+    @media (max-width: 560px) { .picks-grid { grid-template-columns: 1fr; gap: 18px; } }
+
     .empty { color: var(--faint); font-size: 0.95rem; }
     .hidden { display: none; }
     .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 40px; }
@@ -151,6 +164,17 @@
         </table>
       </div>
 
+      <h2>Show on portfolio</h2>
+      <p class="hint">Tick the items to display. Leave a column empty to fall back to showing the latest automatically. Changes go live on your homepage right after you save.</p>
+      <div class="picks-grid">
+        <div><h3>Videos</h3><div id="pick-videos"><p class="empty">Loading…</p></div></div>
+        <div><h3>Articles</h3><div id="pick-articles"><p class="empty">Loading…</p></div></div>
+      </div>
+      <div class="save-row">
+        <button id="save-picks">Save selection</button>
+        <span id="save-msg"></span>
+      </div>
+
       <div class="toolbar">
         <span class="meta" id="meta"></span>
         <button class="ghost" id="logout">Sign out</button>
@@ -161,6 +185,7 @@
   <script>
     var endpoint = (window.ANALYTICS_ENDPOINT || "").replace(/\/$/, "");
     var $ = function (id) { return document.getElementById(id); };
+    var TOKEN = "";
 
     function show(view) {
       $("login").classList.toggle("hidden", view !== "login");
@@ -262,6 +287,58 @@
       $("meta").textContent = "Updated " + new Date().toLocaleString();
     }
 
+    // ---- "Show on portfolio" checkbox lists ----
+    function renderPicks(items, selected, containerId, kind) {
+      var sel = {};
+      (selected || []).forEach(function (s) { sel[s] = true; });
+      var el = $(containerId);
+      if (!items || !items.length) {
+        el.innerHTML = '<p class="empty">Nothing in the feed.</p>';
+        return;
+      }
+      el.innerHTML = items.map(function (it) {
+        var key = kind === "video" ? it.id : it.slug;
+        var meta = kind === "video" ? "" : '<span class="m">' + esc(it.date) + '</span>';
+        return '<label class="pick"><input type="checkbox" value="' + esc(key) + '"' +
+          (sel[key] ? " checked" : "") + '>' +
+          '<span><span class="t">' + esc(it.title) + '</span>' + meta + '</span></label>';
+      }).join("");
+    }
+
+    function loadContent() {
+      Promise.all([
+        fetch(endpoint + "/api/catalog").then(function (r) { return r.json(); }),
+        fetch(endpoint + "/api/picks").then(function (r) { return r.json(); })
+      ]).then(function (res) {
+        var cat = res[0] || {}, picks = res[1] || {};
+        renderPicks(cat.videos || [], picks.videos, "pick-videos", "video");
+        renderPicks(cat.articles || [], picks.articles, "pick-articles", "article");
+      }).catch(function () {
+        $("pick-videos").innerHTML = $("pick-articles").innerHTML =
+          '<p class="empty">Could not load the catalog.</p>';
+      });
+    }
+
+    function savePicks() {
+      var grab = function (id) {
+        return [].slice.call($(id).querySelectorAll("input:checked")).map(function (i) { return i.value; });
+      };
+      var payload = { videos: grab("pick-videos"), articles: grab("pick-articles") };
+      $("save-msg").textContent = "Saving…";
+      fetch(endpoint + "/api/picks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Token": TOKEN },
+        body: JSON.stringify(payload)
+      })
+        .then(function (r) {
+          if (r.status === 401) throw new Error("Not authorized — sign in again.");
+          if (!r.ok) throw new Error("Save failed (" + r.status + ").");
+          return r.json();
+        })
+        .then(function () { $("save-msg").textContent = "Saved ✓ — refresh your homepage to see it."; })
+        .catch(function (e) { $("save-msg").textContent = e.message; });
+    }
+
     function load(token) {
       $("msg").textContent = "Loading…";
       if (!endpoint || endpoint.indexOf("YOUR-PROJECT") !== -1) {
@@ -276,9 +353,11 @@
         })
         .then(function (data) {
           sessionStorage.setItem("admin_token", token);
+          TOKEN = token;
           $("msg").textContent = "";
           show("dash");
           render(data);
+          loadContent();
         })
         .catch(function (e) {
           $("msg").textContent = e.message || "Could not load stats.";
@@ -290,9 +369,11 @@
     $("token").addEventListener("keydown", function (e) { if (e.key === "Enter") load($("token").value.trim()); });
     $("logout").addEventListener("click", function () {
       sessionStorage.removeItem("admin_token");
+      TOKEN = "";
       $("token").value = "";
       show("login");
     });
+    $("save-picks").addEventListener("click", savePicks);
 
     // Auto-load if a token is already in this session.
     var saved = sessionStorage.getItem("admin_token");
