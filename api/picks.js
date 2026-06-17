@@ -12,7 +12,7 @@ const ALLOWED_ORIGINS = [
   "http://localhost:8000",
 ];
 
-const EMPTY = { videos: [], articles: [] };
+const EMPTY = { videos: [], articles: [], repos: [] };
 const redis = Redis.fromEnv();
 
 export default async function handler(req, res) {
@@ -49,11 +49,11 @@ export default async function handler(req, res) {
   return res.status(405).end("method not allowed");
 }
 
-// Coerce to { videos:[strings], articles:[strings] }, capped and de-duped.
+// Coerce to { videos:[strings], articles:[strings], repos:[strings] }, capped + de-duped.
 function normalize(p) {
   const arr = (x) =>
     Array.isArray(x)
       ? [...new Set(x.filter((s) => typeof s === "string").map((s) => s.trim()).filter(Boolean))].slice(0, 50)
       : [];
-  return { videos: arr(p.videos), articles: arr(p.articles) };
+  return { videos: arr(p.videos), articles: arr(p.articles), repos: arr(p.repos) };
 }

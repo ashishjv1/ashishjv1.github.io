@@ -106,7 +106,7 @@
 
     /* Pick lists */
     .hint { color: var(--muted); font-size: 0.9rem; margin: -6px 0 14px; }
-    .picks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+    .picks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 24px; }
     .picks-grid h3 { font-size: 0.92rem; margin: 0 0 10px; color: var(--text); }
     .pick { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: 9px; cursor: pointer; }
     .pick:hover { background: var(--accent-soft); }
@@ -169,6 +169,7 @@
       <div class="picks-grid">
         <div><h3>Videos</h3><div id="pick-videos"><p class="empty">Loading…</p></div></div>
         <div><h3>Articles</h3><div id="pick-articles"><p class="empty">Loading…</p></div></div>
+        <div><h3>GitHub repos</h3><div id="pick-repos"><p class="empty">Loading…</p></div></div>
       </div>
       <div class="save-row">
         <button id="save-picks">Save selection</button>
@@ -297,11 +298,22 @@
         return;
       }
       el.innerHTML = items.map(function (it) {
-        var key = kind === "video" ? it.id : it.slug;
-        var meta = kind === "video" ? "" : '<span class="m">' + esc(it.date) + '</span>';
+        var key, title, meta = "";
+        if (kind === "video") {
+          key = it.id; title = it.title;
+        } else if (kind === "repo") {
+          key = it.name; title = it.name;
+          var bits = [];
+          if (it.stars) bits.push("★ " + it.stars);
+          if (it.language) bits.push(it.language);
+          meta = bits.length ? '<span class="m">' + esc(bits.join("  ·  ")) + '</span>' : "";
+        } else {
+          key = it.slug; title = it.title;
+          meta = '<span class="m">' + esc(it.date) + '</span>';
+        }
         return '<label class="pick"><input type="checkbox" value="' + esc(key) + '"' +
           (sel[key] ? " checked" : "") + '>' +
-          '<span><span class="t">' + esc(it.title) + '</span>' + meta + '</span></label>';
+          '<span><span class="t">' + esc(title) + '</span>' + meta + '</span></label>';
       }).join("");
     }
 
@@ -313,8 +325,9 @@
         var cat = res[0] || {}, picks = res[1] || {};
         renderPicks(cat.videos || [], picks.videos, "pick-videos", "video");
         renderPicks(cat.articles || [], picks.articles, "pick-articles", "article");
+        renderPicks(cat.repos || [], picks.repos, "pick-repos", "repo");
       }).catch(function () {
-        $("pick-videos").innerHTML = $("pick-articles").innerHTML =
+        $("pick-videos").innerHTML = $("pick-articles").innerHTML = $("pick-repos").innerHTML =
           '<p class="empty">Could not load the catalog.</p>';
       });
     }
@@ -323,7 +336,7 @@
       var grab = function (id) {
         return [].slice.call($(id).querySelectorAll("input:checked")).map(function (i) { return i.value; });
       };
-      var payload = { videos: grab("pick-videos"), articles: grab("pick-articles") };
+      var payload = { videos: grab("pick-videos"), articles: grab("pick-articles"), repos: grab("pick-repos") };
       $("save-msg").textContent = "Saving…";
       fetch(endpoint + "/api/picks", {
         method: "POST",

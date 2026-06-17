@@ -317,7 +317,7 @@
     <section id="work">
       <h2>Selected Work</h2>
 
-      <div class="work-grid">
+      <div class="work-grid" id="work-grid">
 
         <div class="card">
           <p class="title">mHC-nanoGPT</p>
@@ -505,6 +505,23 @@
         }).join("\n");
       }
 
+      function renderRepos(items) {
+        return items.map(function (r) {
+          var star = r.stars > 0 ? ' <span class="repo">★ ' + r.stars + '</span>' : '';
+          var chips = [];
+          if (r.language) chips.push(r.language);
+          (r.topics || []).forEach(function (t) { chips.push(t); });
+          var tech = chips.length
+            ? '<div class="tech">' + chips.map(function (c) { return '<span class="chip">' + esc(c) + '</span>'; }).join("") + '</div>'
+            : '';
+          var links = '<a href="' + esc(r.url) + '" target="_blank" rel="noopener">GitHub ↗</a>';
+          if (r.homepage) links += '<a href="' + esc(r.homepage) + '" target="_blank" rel="noopener">Live ↗</a>';
+          return '<div class="card"><p class="title">' + esc(r.name) + star + '</p>' +
+            '<p class="desc">' + esc(r.desc) + '</p>' + tech +
+            '<div class="links">' + links + '</div></div>';
+        }).join("\n");
+      }
+
       Promise.all([
         fetch(API + "/api/catalog").then(function (r) { return r.json(); }),
         fetch(API + "/api/picks").then(function (r) { return r.json(); })
@@ -516,6 +533,16 @@
         var wl = document.getElementById("writing-list");
         if (vl && vids.length) vl.innerHTML = renderVideos(vids);
         if (wl && arts.length) wl.innerHTML = renderArticles(arts);
+
+        // Repos: only override the curated static cards when repos are actually picked
+        // (an empty selection keeps the hand-written cards rather than dumping every repo).
+        if (picks.repos && picks.repos.length) {
+          var by = {};
+          (cat.repos || []).forEach(function (r) { by[r.name] = r; });
+          var repos = picks.repos.map(function (n) { return by[n]; }).filter(Boolean);
+          var gl = document.getElementById("work-grid");
+          if (gl && repos.length) gl.innerHTML = renderRepos(repos);
+        }
       }).catch(function () { /* keep the statically-baked fallback */ });
     })();
   </script>
