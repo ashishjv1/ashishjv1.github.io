@@ -87,10 +87,10 @@
     <h1>Analytics</h1>
     <p class="sub">Private dashboard · profile views and link clicks</p>
 
-    <!-- ============ CONFIG: paste your deployed Worker URL ============ -->
+    <!-- ============ CONFIG: paste your deployed Vercel URL ============ -->
     <script>
-      // e.g. "https://portfolio-analytics.yourname.workers.dev"
-      window.ANALYTICS_ENDPOINT = "https://portfolio-analytics.YOUR-SUBDOMAIN.workers.dev";
+      // e.g. "https://portfolio-api.vercel.app"
+      window.ANALYTICS_ENDPOINT = "https://YOUR-PROJECT.vercel.app";
     </script>
 
     <!-- Login -->
@@ -171,11 +171,11 @@
 
     function load(token) {
       $("msg").textContent = "Loading…";
-      if (!endpoint || endpoint.indexOf("YOUR-SUBDOMAIN") !== -1) {
-        $("msg").textContent = "Set ANALYTICS_ENDPOINT in this file to your Worker URL first.";
+      if (!endpoint || endpoint.indexOf("YOUR-PROJECT") !== -1) {
+        $("msg").textContent = "Set ANALYTICS_ENDPOINT in this file to your Vercel URL first.";
         return;
       }
-      fetch(endpoint + "/stats", { headers: { "X-Admin-Token": token } })
+      fetch(endpoint + "/api/stats", { headers: { "X-Admin-Token": token } })
         .then(function (r) {
           if (r.status === 401) throw new Error("Wrong token.");
           if (!r.ok) throw new Error("Request failed (" + r.status + ").");

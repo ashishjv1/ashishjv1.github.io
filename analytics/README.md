@@ -1,69 +1,72 @@
 # Portfolio analytics
 
-A tiny, free backend that counts **profile views** and **link clicks** for the
-portfolio, plus a private dashboard at `/admin.html`.
+Counts **profile views** and **link clicks**, with a private dashboard at
+`/admin.html`. The site stays on GitHub Pages; the data backend runs on **Vercel**
+(serverless functions) with **Upstash Redis** for storage.
 
-Why a backend at all? GitHub Pages is static — it can't store numbers. This adds
-a small [Cloudflare Worker](https://workers.dev) (free tier) with a KV store to
-hold the counts. The site sends anonymous beacons to it; the dashboard reads them
-back behind a password.
+Why a backend at all? GitHub Pages is static — it can't store numbers. The site
+sends anonymous beacons to two Vercel functions; the dashboard reads them back
+behind a password.
 
 ```
-index.html  ──beacon──▶  Worker /track  ──▶  KV counters
-admin.html  ──token───▶  Worker /stats  ◀──  KV counters
+ashishjv1.github.io ──beacon──▶ /api/track ──▶ Upstash Redis (atomic INCR)
+ashishjv1.github.io/admin.html ──token──▶ /api/stats ◀── Upstash Redis
 ```
+
+Counters use Redis `INCR`, so they're exact even under concurrent traffic.
+
+## Files
+
+- `api/track.js` — records a view or click (`POST /api/track`).
+- `api/stats.js` — returns all counters, token-protected (`GET /api/stats`).
+- `package.json` — declares the `@upstash/redis` dependency Vercel installs.
+- `admin.html`, analytics `<script>` in `index.html` — the front end.
 
 ## One-time setup (~15 min)
 
-You need a free Cloudflare account. Run these from this `analytics/` folder.
+You need your Vercel account. The functions live in this same repo under `api/`.
 
-1. **Install Wrangler and log in**
-   ```bash
-   npm install -g wrangler
-   wrangler login
-   ```
+1. **Import the repo into Vercel.** Vercel dashboard → *Add New… → Project* →
+   import `ashishjv1/ashishjv1.github.io`. Zero config — it auto-detects the
+   `api/` functions. Name the project something like `portfolio-api`.
 
-2. **Create the KV namespace**
-   ```bash
-   wrangler kv namespace create STATS
-   ```
-   Copy the `id` it prints into `wrangler.toml` (replace `REPLACE_WITH_KV_NAMESPACE_ID`).
+2. **Add Upstash Redis.** In the project → *Storage* → *Marketplace* →
+   **Upstash Redis** → create a free database and connect it. This auto-adds the
+   `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` env vars that
+   `Redis.fromEnv()` reads.
 
-3. **Set the dashboard password** (any strong string you choose)
-   ```bash
-   wrangler secret put ADMIN_TOKEN
-   ```
+3. **Set the dashboard password.** Project → *Settings → Environment Variables* →
+   add `ADMIN_TOKEN` = any strong string you choose. Redeploy so it takes effect.
 
-4. **Deploy**
-   ```bash
-   wrangler deploy
-   ```
-   Wrangler prints your Worker URL, e.g.
-   `https://portfolio-analytics.yourname.workers.dev`.
+4. **Grab the project URL,** e.g. `https://portfolio-api.vercel.app`.
 
-5. **Plug the URL into the site.** Replace `YOUR-SUBDOMAIN` (two places):
+5. **Plug the URL into the site.** Replace `YOUR-PROJECT` (two places):
    - `index.html` → the `ENDPOINT` constant in the analytics `<script>`
    - `admin.html` → `window.ANALYTICS_ENDPOINT`
 
-   Also confirm the `ALLOWED_ORIGINS` list at the top of `worker.js` matches your
-   live site URL, then commit and push. Until the URL is filled in, tracking is
-   completely inert.
+   Confirm the `ALLOWED_ORIGINS` list at the top of `api/track.js` and
+   `api/stats.js` matches your live site URL, then commit and push. Until the URL
+   is filled in, tracking is completely inert.
 
 ## Using it
 
-- View the dashboard at `https://ashishjv1.github.io/admin.html`, enter your
-  `ADMIN_TOKEN`, and you'll see total views and a ranked list of link clicks.
+- Open `https://ashishjv1.github.io/admin.html`, enter your `ADMIN_TOKEN`, and
+  you'll see total views and a ranked list of link clicks.
 - The token is held only in that browser tab's session (`sessionStorage`).
+
+## Local development (optional)
+
+```bash
+npm install
+npx vercel dev          # serves /api locally; set env vars in a .env file
+```
 
 ## Notes & limits
 
 - **Privacy:** no cookies, no personal data — just integer counters per label.
-- **Click labels** come from each link's visible text. To set a custom label,
-  add `data-track="whatever"` to the `<a>` in `index.html`.
-- **Free-tier KV:** ~100k reads/day and ~1,000 writes/day. Each view or click is
-  one write, so this comfortably covers a personal site.
-- **Accuracy:** counters use read-then-write, so under heavy simultaneous traffic
-  an occasional increment can be lost. Fine for a portfolio; if you ever need
-  exact counts, switch the Worker to a Durable Object counter.
+- **Click labels** come from each link's visible text. For a custom label, add
+  `data-track="whatever"` to the `<a>` in `index.html`.
+- **Free tiers:** Vercel Hobby + Upstash free database comfortably cover a
+  personal site.
 - `admin.html` is `noindex` and password-gated, but the file itself is public
   (anyone can open the login). The data behind it is protected by the token.

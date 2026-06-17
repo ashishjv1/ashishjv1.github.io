@@ -3,6 +3,7 @@
 _shot.png
 *.tmp
 
-# Cloudflare Worker (analytics) build artifacts
+# Analytics backend (Vercel) build artifacts
 node_modules/
-.wrangler/
+.vercel/
+.env*

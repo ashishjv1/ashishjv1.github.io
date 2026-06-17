@@ -1,0 +1,9 @@
+{
+  "name": "portfolio-analytics",
+  "private": true,
+  "type": "module",
+  "description": "Vercel serverless functions backing the portfolio analytics dashboard.",
+  "dependencies": {
+    "@upstash/redis": "^1.34.3"
+  }
+}
