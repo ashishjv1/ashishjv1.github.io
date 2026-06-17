@@ -416,8 +416,10 @@
         } catch (e) { /* never let analytics break the page */ }
       }
 
+      var ref = document.referrer || "";
+
       // One view per page load.
-      send({ type: "view" });
+      send({ type: "view", ref: ref });
 
       // Every link click, labelled by its visible text (or data-track override).
       document.addEventListener("click", function (e) {
@@ -425,7 +427,7 @@
         if (!a) return;
         var label = (a.getAttribute("data-track") || a.textContent || a.href)
           .replace(/\s+/g, " ").trim().slice(0, 80);
-        send({ type: "click", label: label, href: a.href });
+        send({ type: "click", label: label, href: a.href, ref: ref });
       }, true);
     })();
   </script>

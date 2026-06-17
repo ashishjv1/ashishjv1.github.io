@@ -1,8 +1,9 @@
 # Portfolio analytics
 
-Counts **profile views** and **link clicks**, with a private dashboard at
-`/admin.html`. The site stays on GitHub Pages; the data backend runs on **Vercel**
-(serverless functions) with **Upstash Redis** for storage.
+Counts **profile views** and **link clicks**, shows a **views-by-day** chart and a
+**recent-activity** feed, all on a private dashboard at `/admin.html`. The site
+stays on GitHub Pages; the data backend runs on **Vercel** (serverless functions)
+with **Upstash Redis** for storage.
 
 Why a backend at all? GitHub Pages is static — it can't store numbers. The site
 sends anonymous beacons to two Vercel functions; the dashboard reads them back
@@ -61,9 +62,26 @@ npm install
 npx vercel dev          # serves /api locally; set env vars in a .env file
 ```
 
+## What's captured
+
+Per event, stored in Redis (`events`, last 500), plus lifetime and per-day counters:
+
+- timestamp
+- coarse **country / city** from Vercel's `x-vercel-ip-*` geo headers
+- **referrer** reduced to a bare hostname (e.g. `linkedin.com`, `direct`, `internal`)
+- **device / browser** family parsed from the user-agent
+
+The **raw IP address is never stored** — only the country/city Vercel derives from
+it. There are no cookies and no per-person identifiers, so the dashboard shows
+*where/when/how* traffic arrives, never *who*.
+
 ## Notes & limits
 
-- **Privacy:** no cookies, no personal data — just integer counters per label.
+- **Privacy:** no cookies, no raw IPs, no names — just counters and coarse,
+  non-identifying signals. Because city/country is location data, add a short
+  privacy note to the site if you're in a GDPR-style jurisdiction.
+- **Time zones:** per-day buckets use **UTC**; the activity feed renders each
+  timestamp in the viewer's local time.
 - **Click labels** come from each link's visible text. For a custom label, add
   `data-track="whatever"` to the `<a>` in `index.html`.
 - **Free tiers:** Vercel Hobby + Upstash free database comfortably cover a

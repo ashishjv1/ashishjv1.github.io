@@ -1,7 +1,9 @@
-// Vercel serverless function — return all counters for the dashboard.
+// Vercel serverless function — return everything the dashboard needs.
 // GET /api/stats   header: X-Admin-Token: <ADMIN_TOKEN>   (or ?token=…)
 //
-// Protected by the ADMIN_TOKEN env var you set in the Vercel project.
+// Returns:
+//   { totals:{views,clicks}, clicksByLabel:{label:n},
+//     daily:{ "YYYY-MM-DD": {views,clicks} }, events:[ {…}, … ] }
 // See analytics/README.md.
 
 import { Redis } from "@upstash/redis";
@@ -28,12 +30,52 @@ export default async function handler(req, res) {
     return res.status(401).end("unauthorized");
   }
 
-  const keys = await redis.smembers("keys");
-  const out = {};
+  const [keys, viewsDaily, clicksDaily, events] = await Promise.all([
+    redis.smembers("keys"),
+    redis.hgetall("views:daily"),
+    redis.hgetall("clicks:daily"),
+    redis.lrange("events", 0, 99),
+  ]);
+
+  // Lifetime counters -> totals + per-label click breakdown.
+  const clicksByLabel = {};
+  let views = 0;
+  let clicks = 0;
   if (keys.length) {
     const values = await redis.mget(...keys);
-    keys.forEach((k, i) => { out[k] = Number(values[i]) || 0; });
+    keys.forEach((k, i) => {
+      const n = Number(values[i]) || 0;
+      if (k === "view") views = n;
+      else if (k.indexOf("click:") === 0) {
+        clicksByLabel[k.slice(6)] = n;
+        clicks += n;
+      }
+    });
   }
 
-  return res.status(200).json(out);
+  // Merge the two daily hashes into one date-keyed object.
+  const daily = {};
+  const merge = (hash, field) => {
+    Object.keys(hash || {}).forEach((date) => {
+      if (!daily[date]) daily[date] = { views: 0, clicks: 0 };
+      daily[date][field] = Number(hash[date]) || 0;
+    });
+  };
+  merge(viewsDaily, "views");
+  merge(clicksDaily, "clicks");
+
+  // Upstash deserializes stored objects; tolerate either object or JSON string.
+  const cleanEvents = (events || []).map((e) => {
+    if (typeof e === "string") {
+      try { return JSON.parse(e); } catch (_) { return null; }
+    }
+    return e;
+  }).filter(Boolean);
+
+  return res.status(200).json({
+    totals: { views, clicks },
+    clicksByLabel,
+    daily,
+    events: cleanEvents,
+  });
 }
