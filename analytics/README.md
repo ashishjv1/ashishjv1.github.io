@@ -116,6 +116,27 @@ index.html  ──on load──▶  GET /api/catalog (all items) + GET /api/pick
 Selection order follows the catalog (newest first). Changes are live on the
 homepage as soon as you save and reload (the `/api/picks` read is uncached).
 
+## Email alerts (optional)
+
+The dashboard's **"Email alerts"** section lets you get an email when a visit
+matches a rule — e.g. someone from a given **location** (country code, country,
+or city) or via a given **referrer** (e.g. `linkedin`). Rules are stored in
+Upstash and evaluated in `api/track.js` on every visit; each rule sends at most
+one email per 15 minutes (throttled to avoid floods).
+
+Sending needs a free [Resend](https://resend.com) account:
+
+1. Sign up at Resend with the address you want alerts sent to.
+2. Create an API key (Dashboard → API Keys).
+3. In Vercel → project → Settings → Environment Variables, add
+   `RESEND_API_KEY` = that key, then redeploy.
+
+Until `RESEND_API_KEY` is set, rules still save but no emails send (the dashboard
+shows this status). On Resend's free tier with no verified domain, mail is sent
+from `onboarding@resend.dev` to your own account address — perfect for self-alerts.
+To send from your own domain / to other addresses, verify a domain in Resend and
+set an `ALERT_FROM` env var (e.g. `Portfolio <alerts@yourdomain.com>`).
+
 ## Notes & limits
 
 - **Privacy:** no cookies, no raw IPs, no names — just counters and coarse,

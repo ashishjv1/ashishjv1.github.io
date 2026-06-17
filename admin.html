@@ -134,6 +134,20 @@
     #evt-msg { font-size: 0.84rem; color: var(--faint); }
     td.cb, th.cb { width: 26px; text-align: center; }
     td .evt-cb { accent-color: var(--accent); }
+
+    /* Email alert rules */
+    .alert-rule { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 9px; }
+    .alert-rule select, .alert-rule input[type=text], .alert-rule input[type=email] {
+      font: inherit; font-size: 0.85rem; padding: 8px 10px; border: 1px solid var(--border);
+      border-radius: 8px; background: var(--bg); color: var(--text); min-width: 0;
+    }
+    .alert-rule .al-kind { flex: 0 0 110px; }
+    .alert-rule .al-value { flex: 1 1 150px; }
+    .alert-rule .al-email { flex: 1 1 180px; }
+    .alert-rule .al-en { display: inline-flex; align-items: center; gap: 5px; font-size: 0.82rem; color: var(--muted); }
+    .alert-rule .al-en input { accent-color: var(--accent); }
+    .alert-rule .al-del { background: transparent; color: var(--faint); border: 1px solid var(--border); border-radius: 8px; padding: 0 11px; font-size: 1.05rem; cursor: pointer; }
+    .alert-note { color: var(--faint); font-size: 0.82rem; margin: 8px 0 0; }
     @media (max-width: 560px) { .picks-grid { grid-template-columns: 1fr; gap: 18px; } }
 
     .empty { color: var(--faint); font-size: 0.95rem; }
@@ -202,6 +216,16 @@
         <button id="save-picks">Save selection</button>
         <span id="save-msg"></span>
       </div>
+
+      <h2>Email alerts</h2>
+      <p class="hint">Get an email when a visit matches a rule. <b>Location</b> matches the country code, country, or city (e.g. <code>DE</code>, <code>Germany</code>, <code>Berlin</code>); <b>Referrer</b> matches where they came from (e.g. <code>linkedin</code>). Each rule sends at most one email per 15&nbsp;minutes.</p>
+      <div id="alert-rules"></div>
+      <div class="save-row">
+        <button class="ghost" id="add-rule">+ add rule</button>
+        <button id="save-alerts">Save alerts</button>
+        <span id="alert-msg"></span>
+      </div>
+      <p class="alert-note" id="alert-config"></p>
 
       <div class="toolbar">
         <span class="meta" id="meta"></span>
@@ -434,6 +458,62 @@
       postEvents({ all: true }, "Cleared.");
     }
 
+    // ---- Email alert rules ----
+    function ruleRow(r) {
+      r = r || {};
+      var kind = r.kind === "referrer" ? "referrer" : "location";
+      var opt = function (v, label) { return '<option value="' + v + '"' + (kind === v ? " selected" : "") + ">" + label + "</option>"; };
+      return '<div class="alert-rule" data-id="' + esc(r.id || "") + '">' +
+        '<select class="al-kind">' + opt("location", "Location") + opt("referrer", "Referrer") + '</select>' +
+        '<input type="text" class="al-value" placeholder="Germany / DE / Berlin  ·  or  linkedin" value="' + esc(r.value || "") + '">' +
+        '<input type="email" class="al-email" placeholder="notify this email" value="' + esc(r.email || "") + '">' +
+        '<label class="al-en"><input type="checkbox" class="al-enabled"' + (r.enabled !== false ? " checked" : "") + '> on</label>' +
+        '<button type="button" class="al-del" title="Remove">×</button>' +
+        '</div>';
+    }
+    function loadAlerts() {
+      fetch(endpoint + "/api/alerts", { headers: { "X-Admin-Token": TOKEN } })
+        .then(function (r) { if (!r.ok) throw new Error(); return r.json(); })
+        .then(function (d) {
+          var rules = d.rules || [];
+          $("alert-rules").innerHTML = rules.map(ruleRow).join("");
+          $("alert-config").textContent = d.emailConfigured
+            ? "Email sending is configured ✓"
+            : "Heads up: email sending isn't configured yet — add a RESEND_API_KEY env var in Vercel (see analytics/README.md). Rules save fine, but no emails send until then.";
+          $("alert-config").style.color = d.emailConfigured ? "var(--faint)" : "var(--accent)";
+        })
+        .catch(function () { $("alert-config").textContent = "Could not load alert rules."; });
+    }
+    function addRule() { $("alert-rules").insertAdjacentHTML("beforeend", ruleRow({})); }
+    function saveAlerts() {
+      var rules = [].slice.call(document.querySelectorAll("#alert-rules .alert-rule")).map(function (box) {
+        return {
+          id: box.getAttribute("data-id") || "",
+          kind: box.querySelector(".al-kind").value,
+          value: box.querySelector(".al-value").value.trim(),
+          email: box.querySelector(".al-email").value.trim(),
+          enabled: box.querySelector(".al-enabled").checked
+        };
+      });
+      $("alert-msg").textContent = "Saving…";
+      fetch(endpoint + "/api/alerts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Token": TOKEN },
+        body: JSON.stringify({ rules: rules })
+      })
+        .then(function (r) {
+          if (r.status === 401) throw new Error("Not authorized.");
+          if (!r.ok) throw new Error("Save failed (" + r.status + ").");
+          return r.json();
+        })
+        .then(function (d) {
+          var n = (d.rules || []).length;
+          $("alert-msg").textContent = "Saved ✓ (" + n + " rule" + (n === 1 ? "" : "s") + " active)";
+          loadAlerts();
+        })
+        .catch(function (e) { $("alert-msg").textContent = e.message; });
+    }
+
     function savePicks() {
       var grab = function (id) {
         return [].slice.call($(id).querySelectorAll("input:checked")).map(function (i) { return i.value; });
@@ -482,6 +562,7 @@
           show("dash");
           render(data);
           loadContent();
+          loadAlerts();
         })
         .catch(function (e) {
           $("msg").textContent = e.message || "Could not load stats.";
@@ -508,6 +589,13 @@
       } else if (e.target.classList.contains("re-del")) {
         e.target.closest(".re-link").remove();
       }
+    });
+
+    // Email alert rules.
+    $("add-rule").addEventListener("click", addRule);
+    $("save-alerts").addEventListener("click", saveAlerts);
+    $("alert-rules").addEventListener("click", function (e) {
+      if (e.target.classList.contains("al-del")) e.target.closest(".alert-rule").remove();
     });
 
     // Activity delete / clear.

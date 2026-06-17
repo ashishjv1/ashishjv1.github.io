@@ -73,7 +73,59 @@ export default async function handler(req, res) {
     redis.ltrim(EVENTS_KEY, 0, EVENTS_MAX - 1),
   ]);
 
+  // Fire email alerts for matching rules. Never let this break tracking.
+  try { await maybeAlert(event); } catch (_) { /* ignore */ }
+
   return res.status(200).end("ok");
+}
+
+async function maybeAlert(event) {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return; // email not configured yet
+  const rules = await redis.get("alerts");
+  if (!Array.isArray(rules) || !rules.length) return;
+
+  for (const rule of rules) {
+    if (!rule || rule.enabled === false || !rule.email || !matches(rule, event)) continue;
+    // Throttle: at most one email per rule per 15 min, to avoid floods.
+    const fresh = await redis.set("alertthrottle:" + rule.id, "1", { nx: true, ex: 900 });
+    if (!fresh) continue;
+    await sendEmail(key, rule.email, event);
+  }
+}
+
+function matches(rule, event) {
+  const v = String(rule.value || "").toLowerCase().trim();
+  if (!v) return false;
+  if (rule.kind === "referrer") return String(event.ref || "").toLowerCase().includes(v);
+  return ((event.country || "") + " " + (event.city || "")).toLowerCase().includes(v);
+}
+
+async function sendEmail(apiKey, to, event) {
+  const from = process.env.ALERT_FROM || "Portfolio <onboarding@resend.dev>";
+  const where = [event.city, event.country].filter((x) => x && x !== "?").join(", ") || "unknown location";
+  const via = event.ref && event.ref !== "direct" ? event.ref : "direct";
+  const what = event.type === "click" ? `clicked "${event.label || "a link"}"` : "viewed your portfolio";
+  const when = new Date(event.t || Date.now()).toUTCString();
+
+  const html =
+    `<p>Someone ${what}.</p>` +
+    `<ul>` +
+    `<li><b>Location:</b> ${esc(where)}</li>` +
+    `<li><b>Source:</b> ${esc(via)}</li>` +
+    `<li><b>Device:</b> ${esc((event.device || "") + (event.browser ? " · " + event.browser : ""))}</li>` +
+    `<li><b>Time:</b> ${esc(when)}</li>` +
+    `</ul>`;
+
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: "Bearer " + apiKey, "Content-Type": "application/json" },
+    body: JSON.stringify({ from, to, subject: `Portfolio visit — ${where} via ${via}`, html }),
+  });
+}
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 }
 
 function decodeHeader(v) {
