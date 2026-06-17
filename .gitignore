@@ -2,3 +2,7 @@
 .claude/
 _shot.png
 *.tmp
+
+# Cloudflare Worker (analytics) build artifacts
+node_modules/
+.wrangler/

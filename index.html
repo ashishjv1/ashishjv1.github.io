@@ -390,5 +390,44 @@
 
   </div>
   <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+
+  <!-- ============================================================
+       ANALYTICS  —  counts page views + outbound link clicks.
+       Paste your deployed Cloudflare Worker URL below to switch it on.
+       Stays completely inert until then. See analytics/README.md.
+       ============================================================ -->
+  <script>
+    (function () {
+      var ENDPOINT = "https://portfolio-analytics.YOUR-SUBDOMAIN.workers.dev";
+      if (!ENDPOINT || ENDPOINT.indexOf("YOUR-SUBDOMAIN") !== -1) return;
+      ENDPOINT = ENDPOINT.replace(/\/$/, "");
+
+      function send(payload) {
+        try {
+          var data = JSON.stringify(payload);
+          if (navigator.sendBeacon) {
+            navigator.sendBeacon(ENDPOINT + "/track", new Blob([data], { type: "text/plain" }));
+          } else {
+            fetch(ENDPOINT + "/track", {
+              method: "POST", body: data, keepalive: true,
+              headers: { "Content-Type": "text/plain" }
+            });
+          }
+        } catch (e) { /* never let analytics break the page */ }
+      }
+
+      // One view per page load.
+      send({ type: "view" });
+
+      // Every link click, labelled by its visible text (or data-track override).
+      document.addEventListener("click", function (e) {
+        var a = e.target.closest ? e.target.closest("a[href]") : null;
+        if (!a) return;
+        var label = (a.getAttribute("data-track") || a.textContent || a.href)
+          .replace(/\s+/g, " ").trim().slice(0, 80);
+        send({ type: "click", label: label, href: a.href });
+      }, true);
+    })();
+  </script>
 </body>
 </html>
