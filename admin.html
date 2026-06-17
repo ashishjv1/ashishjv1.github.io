@@ -218,7 +218,7 @@
       </div>
 
       <h2>Email alerts</h2>
-      <p class="hint">Get an email when a visit matches a rule. <b>Location</b> matches the country code, country, or city (e.g. <code>DE</code>, <code>Germany</code>, <code>Berlin</code>); <b>Referrer</b> matches where they came from (e.g. <code>linkedin</code>). Each rule sends at most one email per 15&nbsp;minutes.</p>
+      <p class="hint">Get an email when a visit matches a rule. <b>Location</b> matches the 2-letter country code or the city (e.g. <code>DE</code> or <code>Berlin</code>); <b>Referrer</b> matches where they came from (e.g. <code>linkedin</code>). Matching is case-insensitive. Each rule sends at most one email per 15&nbsp;minutes.</p>
       <div id="alert-rules"></div>
       <div class="save-row">
         <button class="ghost" id="add-rule">+ add rule</button>
@@ -465,7 +465,7 @@
       var opt = function (v, label) { return '<option value="' + v + '"' + (kind === v ? " selected" : "") + ">" + label + "</option>"; };
       return '<div class="alert-rule" data-id="' + esc(r.id || "") + '">' +
         '<select class="al-kind">' + opt("location", "Location") + opt("referrer", "Referrer") + '</select>' +
-        '<input type="text" class="al-value" placeholder="Germany / DE / Berlin  ·  or  linkedin" value="' + esc(r.value || "") + '">' +
+        '<input type="text" class="al-value" placeholder="DE / Berlin  ·  or  linkedin" value="' + esc(r.value || "") + '">' +
         '<input type="email" class="al-email" placeholder="notify this email" value="' + esc(r.email || "") + '">' +
         '<label class="al-en"><input type="checkbox" class="al-enabled"' + (r.enabled !== false ? " checked" : "") + '> on</label>' +
         '<button type="button" class="al-del" title="Remove">×</button>' +

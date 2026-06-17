@@ -119,8 +119,8 @@ homepage as soon as you save and reload (the `/api/picks` read is uncached).
 ## Email alerts (optional)
 
 The dashboard's **"Email alerts"** section lets you get an email when a visit
-matches a rule — e.g. someone from a given **location** (country code, country,
-or city) or via a given **referrer** (e.g. `linkedin`). Rules are stored in
+matches a rule — e.g. someone from a given **location** (2-letter country code
+like `DE`, or a city like `Berlin`) or via a given **referrer** (e.g. `linkedin`). Rules are stored in
 Upstash and evaluated in `api/track.js` on every visit; each rule sends at most
 one email per 15 minutes (throttled to avoid floods).
 
