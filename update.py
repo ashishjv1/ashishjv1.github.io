@@ -39,8 +39,18 @@ YT_ICON = ('<svg class="yt-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="'
            '31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg>')
 
 
+# Substack sits behind Cloudflare, which 403s requests that don't look like a
+# real browser. Send a full browser-style header set so CI fetches succeed.
+BROWSER_HEADERS = {
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
 def fetch(url):
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (portfolio-updater)"})
+    req = urllib.request.Request(url, headers=BROWSER_HEADERS)
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.read()
 
