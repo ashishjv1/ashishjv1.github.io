@@ -18,6 +18,14 @@ const SUBSTACK_FEED = "https://ashishjhav1.substack.com/feed";
 const GITHUB_USER = "ashishjv1";
 const MAX_EACH = 60;
 
+// Extra links to attach to a repo card, beyond its GitHub URL + homepage field.
+// Keyed by repo name. These show up as additional "label ↗" links on the card.
+const EXTRA_LINKS = {
+  GRAFT: [
+    { label: "W&B runs", url: "https://wandb.ai/murd0ckbl3ak/Smart_Sampling_resnet18_imagenet_caltech256" },
+  ],
+};
+
 const ALLOWED_ORIGINS = [
   "https://ashishjv1.github.io",
   "http://localhost:8000",
@@ -118,6 +126,7 @@ function parseRepos(list) {
       stars: r.stargazers_count || 0,
       language: r.language || "",
       topics: Array.isArray(r.topics) ? r.topics.slice(0, 4) : [],
+      links: EXTRA_LINKS[r.name] || [],
     }))
     .filter((r) => r.name);
 }

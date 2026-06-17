@@ -516,6 +516,9 @@
             : '';
           var links = '<a href="' + esc(r.url) + '" target="_blank" rel="noopener">GitHub ↗</a>';
           if (r.homepage) links += '<a href="' + esc(r.homepage) + '" target="_blank" rel="noopener">Live ↗</a>';
+          (r.links || []).forEach(function (l) {
+            links += '<a href="' + esc(l.url) + '" target="_blank" rel="noopener">' + esc(l.label) + ' ↗</a>';
+          });
           return '<div class="card"><p class="title">' + esc(r.name) + star + '</p>' +
             '<p class="desc">' + esc(r.desc) + '</p>' + tech +
             '<div class="links">' + links + '</div></div>';
