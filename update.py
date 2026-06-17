@@ -13,6 +13,7 @@ Standard library only — no pip install needed.
 import html
 import re
 import sys
+import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
@@ -25,6 +26,11 @@ MAX_VIDEOS         = 6
 MAX_POSTS          = 6
 SUBSTACK_LABEL     = "Substack"   # shown in the colored .src tag
 INDEX_FILE         = "index.html"
+
+# Substack's Cloudflare blocks GitHub Actions IPs, so the Substack feed is
+# fetched through this Vercel proxy (see api/feed.js). Leave empty to fetch
+# Substack directly (works from un-blocked networks like a local machine).
+FEED_PROXY = "https://portfolio-api-two-rho.vercel.app/api/feed?url="
 # ----------------------------------------------------------------------------
 
 NS = {
@@ -50,16 +56,6 @@ BROWSER_HEADERS = {
 
 
 def fetch(url):
-    # Cloudflare also fingerprints the TLS handshake, which plain urllib fails.
-    # Prefer curl_cffi (impersonates a real Chrome handshake) when available;
-    # fall back to urllib for local runs where it isn't installed / isn't needed.
-    try:
-        from curl_cffi import requests as cffi_requests
-        r = cffi_requests.get(url, impersonate="chrome", timeout=30)
-        if r.status_code == 200:
-            return r.content
-    except Exception:
-        pass
     req = urllib.request.Request(url, headers=BROWSER_HEADERS)
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.read()
@@ -109,7 +105,10 @@ def build_videos():
 
 # ------------------------------- SUBSTACK -----------------------------------
 def build_writing():
-    root = ET.fromstring(fetch(SUBSTACK_URL.rstrip("/") + "/feed"))
+    feed_url = SUBSTACK_URL.rstrip("/") + "/feed"
+    if FEED_PROXY:
+        feed_url = FEED_PROXY + urllib.parse.quote(feed_url, safe="")
+    root = ET.fromstring(fetch(feed_url))
     blocks = []
     for item in root.find("channel").findall("item")[:MAX_POSTS]:
         title = item.findtext("title", default="")
