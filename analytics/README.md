@@ -89,16 +89,24 @@ it. There are no cookies and no per-person identifiers, so the dashboard shows
 
 ## Curating what shows on the portfolio
 
-The dashboard's **"Show on portfolio"** section lets you tick exactly which videos
-and articles appear on the homepage — no code edits.
+The dashboard's **"Show on portfolio"** section lets you tick exactly which videos,
+articles, and GitHub repos appear on the homepage — no code edits.
+
+Repo cards are built from each repo's GitHub metadata: the **description** becomes
+the card text, the **language + topics** become the chips, and the repo's
+**homepage** field (if set) renders as a second "Live ↗" link. So to polish a card,
+edit those fields on GitHub. Leaving the Repos column empty keeps the hand-written
+Selected Work cards instead of listing every repo.
 
 ```
 admin.html  ──tick + Save──▶  POST /api/picks (token)  ──▶  Upstash "picks"
 index.html  ──on load──▶  GET /api/catalog (all items) + GET /api/picks  ──▶  renders your selection
 ```
 
-- `api/catalog.js` — fetches + parses the YouTube and Substack feeds into JSON
-  (`{videos, articles}`), edge-cached. Powers both the checkboxes and the homepage.
+- `api/catalog.js` — fetches + parses the YouTube, Substack, and GitHub sources
+  into JSON (`{videos, articles, repos}`), edge-cached. Each source is independent,
+  so one failing returns `[]` for that section without breaking the rest. Powers
+  both the checkboxes and the homepage.
 - `api/picks.js` — `GET` returns the saved selection (public, always fresh);
   `POST` saves it (requires `X-Admin-Token`).
 - The homepage's Videos/Writing lists are rendered client-side from your picks.
