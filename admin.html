@@ -80,16 +80,16 @@
     /* Daily column chart */
     .chart {
       display: flex; align-items: flex-end; gap: 6px;
-      height: 160px; padding: 12px 14px;
+      height: 200px; padding: 12px 14px;
       border: 1px solid var(--border); border-radius: 14px;
       background: var(--surface); box-shadow: var(--shadow); overflow-x: auto;
     }
     .col { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; min-width: 26px; }
-    .col .stack { width: 100%; display: flex; flex-direction: column; justify-content: flex-end; height: 110px; }
-    .col .vbar { width: 70%; margin: 0 auto; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; }
+    .col .stack { width: 100%; display: flex; flex-direction: row; align-items: flex-end; justify-content: center; gap: 3px; height: 120px; }
+    .col .vbar { width: 40%; max-width: 16px; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; }
     .col .vbar.clicks { background: var(--accent-soft); }
-    .col .d { font-size: 0.66rem; color: var(--faint); white-space: nowrap; }
-    .col .c { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 600; }
+    .col .d { font-size: 0.66rem; color: var(--faint); white-space: nowrap; flex-shrink: 0; }
+    .col .c { font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; font-weight: 600; flex-shrink: 0; min-height: 1em; }
     .legend { display: flex; gap: 16px; margin: 10px 2px 0; font-size: 0.78rem; color: var(--muted); }
     .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: middle; }
     .legend i.v { background: var(--accent); }
